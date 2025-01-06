@@ -1,0 +1,48 @@
+{% extends "plantilla.html" %}
+
+{% block contenido %}
+<div class="container mt-5">
+    <!-- Sección de Bienvenida en la parte superior -->
+    <h3 class="mb-4 text-center text-danger fw-bold" style="font-family: 'Georgia', serif;">Bienvenidos a mi página</h3>
+    
+    <!-- Lista de Proyectos (ahora abajo) -->
+    <div class="row justify-content-center">
+        {% for proyecto in proyectos %}
+        <div class="col-md-4 mb-4">
+            <!-- Tarjeta de Proyecto -->
+            <div class="card border-danger">
+                <div class="card-body">
+                    <!-- Título del Proyecto -->
+                    <h5 class="card-title text-danger" style="font-family: 'Georgia', serif; font-weight: bold;">
+                        {{ proyecto.nombre }}
+                    </h5>
+
+                    <!-- Descripción y Fecha de Entrega -->
+                    <p class="card-text"><strong>Descripción:</strong> {{ proyecto.descripcion }}</p>
+                    <p class="card-text"><strong>Fecha de Entrega:</strong> {{ proyecto.fecha_entrega }}</p>
+
+                    <!-- Botones de Acción -->
+                    <div class="d-flex justify-content-between">
+                        <!-- Botón de Detalles -->
+                        <a href="{% url 'detallesProyecto' proyecto.id %}" class="btn btn-danger">Detalles</a>
+
+                        <!-- Botón de Editar -->
+                        <a href="{% url 'editar_proyecto' proyecto.id %}" class="btn btn-warning btn-sm">Editar</a>
+
+                        <!-- Formulario para Eliminar Proyecto -->
+                        <form action="{% url 'eliminar_proyecto' proyecto.id %}" method="post" class="delete-form" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <!-- Mensaje si no hay proyectos -->
+        <p class="text-center">No hay proyectos disponibles.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+

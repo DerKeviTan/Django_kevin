@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles del Proyecto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #d1e7ff, #b6d4fe);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar-custom {
+            background-color: #1e3a8a; /* Azul oscuro */
+            padding: 10px;
+        }
+
+        .navbar-custom .nav-link,
+        .navbar-custom .navbar-brand {
+            color: white !important;
+            font-weight: bold;
+        }
+
+        .navbar-custom .nav-link:hover {
+            color: #d1e7ff !important;
+            text-decoration: underline;
+        }
+
+        .container {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        footer {
+            background-color: #f8f9fa;
+            color: #1e3a8a;
+            text-align: center;
+            padding: 10px 0;
+            margin-top: auto;
+        }
+
+        footer a {
+            color: #0d6efd;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .chart-container {
+            display: flex;
+            justify-content: space-around;
+            max-width: 900px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .chart-container canvas {
+            max-width: 400px;
+            max-height: 400px;
+        }
+
+        .table th,
+        .table td {
+            border-width: 2px; /* Aumenté el grosor de las líneas */
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Menú superior -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Sistema Gestión de Proyectos</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/listadoProyecto/">Ver Lista</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/nuevaProyecto/">Nuevo Proyecto</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <div class="container">
+        <!-- Gráficos -->
+        <div class="chart-container">
+            <!-- Gráfico de barras -->
+            <div class="chart-item">
+                <canvas id="progresoBarras"></canvas>
+            </div>
+            <!-- Gráfico lineal -->
+            <div class="chart-item">
+                <canvas id="progresoLineal"></canvas>
+            </div>
+        </div>
+
+        <h1 class="text-center mb-4">Detalles del Proyecto</h1>
+        <div class="card mb-4">
+            <div class="card-body">
+                <p><strong>Nombre:</strong> {{ proyecto.nombre }}</p>
+                <p><strong>Descripción:</strong> {{ proyecto.descripcion }}</p>
+                <p><strong>Fecha de Entrega:</strong> {{ proyecto.fecha_entrega }}</p>
+            </div>
+        </div>
+
+        <!-- Tabla de tareas -->
+        <h3 class="mb-3">Tareas</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tarea in proyecto.tareas.all %}
+                <tr>
+                    <td>{{ tarea.nombre }}</td>
+                    <td>{{ tarea.estado }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Botón para agregar tareas -->
+        <div class="d-flex justify-content-between mt-4">
+            <a href="{% url 'nuevaTarea' proyecto.id %}" class="btn btn-primary">Agregar Tarea</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <a href="{% url 'listadoProyecto' %}" class="btn btn-secondary">Regresar</a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; UTC - 2025 | Sistema de Gestión de Proyectos</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        const ctxBarras = document.getElementById('progresoBarras').getContext('2d');
+        new Chart(ctxBarras, {
+            type: 'bar',
+            data: {
+                labels: ['Completado', 'Pendiente'],
+                datasets: [{
+                    label: 'Progreso',
+                    data: [{{ progreso }}, {{ restante }}],
+                    backgroundColor: ['#0d6efd', '#28a745'],  // Colores cambiados a azul y verde
+                    borderColor: ['#0d6efd', '#28a745'],
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const ctxLineal = document.getElementById('progresoLineal').getContext('2d');
+        new Chart(ctxLineal, {
+            type: 'line',
+            data: {
+                labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],  // Labels para el gráfico lineal
+                datasets: [{
+                    label: 'Progreso',
+                    data: [{{ progresoSemana1 }}, {{ progresoSemana2 }}, {{ progresoSemana3 }}, {{ progresoSemana4 }}],  // Datos para el gráfico lineal
+                    fill: false,
+                    borderColor: '#ff5733',  // Color de la línea
+                    tension: 0.1,
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
